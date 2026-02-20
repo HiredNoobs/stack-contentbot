@@ -4,25 +4,27 @@ services:
     image: $CONTENTBOT_IMAGE
     configs:
       - source: contentbot_conf
-        target: /app/contentbot/contentbot.conf
+        target: /etc/contentbot/contentbot.conf
     secrets:
       - source: contentbot_secrets_conf
-        target: /app/contentbot/contentbot_secrets.conf
+        target: /etc/contentbot/contentbot_secrets.conf
       - source: redis_crt
-        target: /app/contentbot/tls/redis.crt
+        target: /etc/contentbot/tls/redis.crt
       - source: redis_key
-        target: /app/contentbot/tls/redis.key
+        target: /etc/contentbot/tls/redis.key
       - source: redis_ca
-        target: /app/contentbot/tls/redis_ca.crt
+        target: /etc/contentbot/tls/redis_ca.crt
       - source: kafka_crt
-        target: /app/contentbot/tls/kafka.crt
+        target: /etc/contentbot/tls/kafka.crt
       - source: kafka_key
-        target: /app/contentbot/tls/kafka.key
+        target: /etc/contentbot/tls/kafka.key
       - source: kafka_ca
-        target: /app/contentbot/tls/kafka_ca.crt
+        target: /etc/contentbot/tls/kafka_ca.crt
     environment:
       PYTHONUNBUFFERED: 1
       DOMAIN: $DOMAIN
+      CONFIG_PATH: /etc/contentbot/contentbot.conf
+      SECRETS_PATH: /etc/contentbot/contentbot_secrets.conf
     command: chatbot
     deploy:
       mode: replicated
@@ -36,25 +38,27 @@ services:
     image: $CONTENTBOT_IMAGE
     configs:
       - source: contentbot_conf
-        target: /app/contentbot/contentbot.conf
+        target: /etc/contentbot/contentbot.conf
     secrets:
       - source: contentbot_secrets_conf
-        target: /app/contentbot/contentbot_secrets.conf
+        target: /etc/contentbot/contentbot_secrets.conf
       - source: redis_crt
-        target: /app/contentbot/tls/redis.crt
+        target: /etc/contentbot/tls/redis.crt
       - source: redis_key
-        target: /app/contentbot/tls/redis.key
+        target: /etc/contentbot/tls/redis.key
       - source: redis_ca
-        target: /app/contentbot/tls/redis_ca.crt
+        target: /etc/contentbot/tls/redis_ca.crt
       - source: kafka_crt
-        target: /app/contentbot/tls/kafka.crt
+        target: /etc/contentbot/tls/kafka.crt
       - source: kafka_key
-        target: /app/contentbot/tls/kafka.key
+        target: /etc/contentbot/tls/kafka.key
       - source: kafka_ca
-        target: /app/contentbot/tls/kafka_ca.crt
+        target: /etc/contentbot/tls/kafka_ca.crt
     environment:
       PYTHONUNBUFFERED: 1
       DOMAIN: $DOMAIN
+      CONFIG_PATH: /etc/contentbot/contentbot.conf
+      SECRETS_PATH: /etc/contentbot/contentbot_secrets.conf
     command: worker
     deploy:
       mode: replicated
