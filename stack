@@ -13,7 +13,7 @@ function stack_check_env {
 
 function stack_discover {
   export CHATBOT_REPLICAS=$(count "$CHATBOT_NODES")
-  export WORKER_REPLICAS=$(count "$WOKER_NODES")
+  export WORKER_REPLICAS=$(count "$WORKER_NODES")
 }
 
 function stack_tools {
