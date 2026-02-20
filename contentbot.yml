@@ -3,7 +3,11 @@ services:
     hostname: chatbot{{.Task.Slot}}
     image: $CONTENTBOT_IMAGE
     configs:
+      - source: contentbot_conf
+        target: /app/contentbot/contentbot.conf
     secrets:
+      - source: contentbot_secrets_conf
+        target: /app/contentbot/contentbot_secrets.conf
     environment:
       PYTHONUNBUFFERED: 1
       DOMAIN: $DOMAIN
@@ -19,7 +23,11 @@ services:
     hostname: worker{{.Task.Slot}}
     image: $CONTENTBOT_IMAGE
     configs:
+      - source: contentbot_conf
+        target: /app/contentbot/contentbot.conf
     secrets:
+      - source: contentbot_secrets_conf
+        target: /app/contentbot/contentbot_secrets.conf
     environment:
       PYTHONUNBUFFERED: 1
       DOMAIN: $DOMAIN
@@ -31,3 +39,11 @@ services:
         max_replicas_per_node: 1
         constraints:
           - node.labels.${STACK}_worker == 1
+
+configs:
+  contentbot_conf:
+    file: $CONFIGS/contentbot.conf
+
+secrets:
+  contentbot_secrets_conf:
+    file: $SECRETS/contentbot_secrets.conf
