@@ -1,2 +1,3 @@
 # stack-contentbot
+
 Contentbot deployment.

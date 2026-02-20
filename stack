@@ -1,0 +1,45 @@
+#!/usr/bin/env bash
+
+# -----------------------------------------------------
+# Stack functions
+# -----------------------------------------------------
+
+function stack_check_env {
+  if [ ! -d "$CONFIGS" ] || [ ! -d "$SECRETS" ]; then
+    echo "Configs or secrets directory are missing from '$ENVIRONMENT_BASE'."
+    exit 1
+  fi
+}
+
+function stack_discover {
+  export CHATBOT_REPLICAS=$(count "$CHATBOT_NODES")
+  export WORKER_REPLICAS=$(count "$WOKER_NODES")
+}
+
+function stack_tools {
+  local tool="$STACK_PATH/tools/$1"
+  shift
+
+  if [[ ! -x "$tool" ]]; then
+    log_error "$tool doesn't exist or isn't executable."
+    exit 1
+  fi
+
+  log_info "Running $tool with args: $@"
+  "$tool" "$@"
+}
+
+function stack_env {
+  echo
+  echo "DOCKER IMAGE    = $CONTENTBOT_IMAGE"
+  echo "CHATBOT NODES   = ($CHATBOT_REPLICAS)"
+  list "$CHATBOT_NODES"
+  echo
+  echo "WORKER NODES    = ($WORKER_REPLICAS)"
+  list "$WORKER_NODES"
+  echo
+}
+
+function stack_deploy {
+  docker stack deploy --detach=true -c contentbot.yml "$STACK"
+}

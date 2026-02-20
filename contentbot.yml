@@ -1,0 +1,33 @@
+services:
+  chatbot:
+    hostname: chatbot{{.Task.Slot}}
+    image: $CONTENTBOT_IMAGE
+    configs:
+    secrets:
+    environment:
+      PYTHONUNBUFFERED: 1
+      DOMAIN: $DOMAIN
+    command: chatbot
+    deploy:
+      mode: replicated
+      replicas: $CHATBOT_REPLICAS
+      placement:
+        max_replicas_per_node: 1
+        constraints:
+          - node.labels.${STACK}_chatbot == 1
+  worker:
+    hostname: worker{{.Task.Slot}}
+    image: $CONTENTBOT_IMAGE
+    configs:
+    secrets:
+    environment:
+      PYTHONUNBUFFERED: 1
+      DOMAIN: $DOMAIN
+    command: worker
+    deploy:
+      mode: replicated
+      replicas: $WORKER_REPLICAS
+      placement:
+        max_replicas_per_node: 1
+        constraints:
+          - node.labels.${STACK}_worker == 1
