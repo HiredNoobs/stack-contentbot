@@ -23,7 +23,7 @@ services:
     environment:
       PYTHONUNBUFFERED: 1
       RUNNING_ENVIRONMENT: DOCKER
-      LOG_LEVEL: $LOG_LEVEL
+      LOG_LEVEL: $CONTENTBOT_LOG_LEVEL
       DOMAIN: $DOMAIN
       CONFIG_PATH: /etc/contentbot/contentbot.conf
       SECRETS_PATH: /etc/contentbot/contentbot_secrets.conf
@@ -59,7 +59,7 @@ services:
     environment:
       PYTHONUNBUFFERED: 1
       RUNNING_ENVIRONMENT: DOCKER
-      LOG_LEVEL: $LOG_LEVEL
+      LOG_LEVEL: $CONTENTBOT_LOG_LEVEL
       DOMAIN: $DOMAIN
       CONFIG_PATH: /etc/contentbot/contentbot.conf
       SECRETS_PATH: /etc/contentbot/contentbot_secrets.conf
