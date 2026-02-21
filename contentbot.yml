@@ -22,6 +22,8 @@ services:
         target: /etc/contentbot/tls/kafka_ca.crt
     environment:
       PYTHONUNBUFFERED: 1
+      RUNNING_ENVIRONMENT: DOCKER
+      LOG_LEVEL: $LOG_LEVEL
       DOMAIN: $DOMAIN
       CONFIG_PATH: /etc/contentbot/contentbot.conf
       SECRETS_PATH: /etc/contentbot/contentbot_secrets.conf
@@ -56,6 +58,8 @@ services:
         target: /etc/contentbot/tls/kafka_ca.crt
     environment:
       PYTHONUNBUFFERED: 1
+      RUNNING_ENVIRONMENT: DOCKER
+      LOG_LEVEL: $LOG_LEVEL
       DOMAIN: $DOMAIN
       CONFIG_PATH: /etc/contentbot/contentbot.conf
       SECRETS_PATH: /etc/contentbot/contentbot_secrets.conf
