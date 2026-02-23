@@ -14,12 +14,12 @@ services:
         target: /etc/contentbot/tls/redis.key
       - source: redis_ca
         target: /etc/contentbot/tls/redis_ca.crt
-      - source: kafka_crt
-        target: /etc/contentbot/tls/kafka.crt
-      - source: kafka_key
-        target: /etc/contentbot/tls/kafka.key
-      - source: kafka_ca
-        target: /etc/contentbot/tls/kafka_ca.crt
+      - source: rabbitmq_crt
+        target: /etc/contentbot/tls/rabbitmq.crt
+      - source: rabbitmq_key
+        target: /etc/contentbot/tls/rabbitmq.key
+      - source: rabbitmq_ca
+        target: /etc/contentbot/tls/rabbitmq_ca.crt
     environment:
       PYTHONUNBUFFERED: 1
       RUNNING_ENVIRONMENT: DOCKER
@@ -50,12 +50,12 @@ services:
         target: /etc/contentbot/tls/redis.key
       - source: redis_ca
         target: /etc/contentbot/tls/redis_ca.crt
-      - source: kafka_crt
-        target: /etc/contentbot/tls/kafka.crt
-      - source: kafka_key
-        target: /etc/contentbot/tls/kafka.key
-      - source: kafka_ca
-        target: /etc/contentbot/tls/kafka_ca.crt
+      - source: rabbitmq_crt
+        target: /etc/contentbot/tls/rabbitmq.crt
+      - source: rabbitmq_key
+        target: /etc/contentbot/tls/rabbitmq.key
+      - source: rabbitmq_ca
+        target: /etc/contentbot/tls/rabbitmq_ca.crt
     environment:
       PYTHONUNBUFFERED: 1
       RUNNING_ENVIRONMENT: DOCKER
@@ -85,9 +85,9 @@ secrets:
     file: $SECRETS/redis.key
   redis_ca:
     file: $SECRETS/redis_ca.crt
-  kafka_crt:
-    file: $SECRETS/kafka.crt
-  kafka_key:
-    file: $SECRETS/kafka.key
-  kafka_ca:
-    file: $SECRETS/kafka_ca.crt
+  rabbitmq_crt:
+    file: $SECRETS/rabbitmq.crt
+  rabbitmq_key:
+    file: $SECRETS/rabbitmq.key
+  rabbitmq_ca:
+    file: $SECRETS/rabbitmq_ca.crt
