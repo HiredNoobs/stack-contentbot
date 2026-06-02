@@ -80,14 +80,20 @@ secrets:
   contentbot_secrets_conf:
     file: $SECRETS/contentbot_secrets.conf
   redis_crt:
-    file: $SECRETS/redis.crt
+    name: external_${STACK}.redis_core_contentbot_crt
+    external: true
   redis_key:
-    file: $SECRETS/redis.key
+    name: external_${STACK}.redis_core_contentbot_key
+    external: true
   redis_ca:
-    file: $SECRETS/redis_ca.crt
+    name: external_${STACK}.redis_core_ca_crt
+    external: true
   rabbitmq_crt:
-    file: $SECRETS/rabbitmq.crt
+    name: external_${STACK}.rabbitmq_core_contentbot_crt
+    external: true
   rabbitmq_key:
-    file: $SECRETS/rabbitmq.key
+    name: external_${STACK}.rabbitmq_core_contentbot_key
+    external: true
   rabbitmq_ca:
-    file: $SECRETS/rabbitmq_ca.crt
+    name: external_${STACK}.rabbitmq_core_ca_crt
+    external: true
