@@ -1,0 +1,101 @@
+# Rendered once per component (chatbot, worker), each with one replica per node labelled
+# ${STACK}_${COMPONENT}. Both are stateless, everything is in Redis and RabbitMQ.
+#
+# The image runs as root, its dictionary (/etc/contentbot/eng_dict.txt) is only readable by
+# root. The config files are mounted individually so the dictionary isn't hidden.
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: ${COMPONENT}
+  labels:
+    app.kubernetes.io/name: contentbot
+    app.kubernetes.io/component: ${COMPONENT}
+spec:
+  replicas: ${COMPONENT_REPLICAS}
+  # Replace in place, so there's never a second chatbot in the channel during an update.
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxSurge: 0
+      maxUnavailable: 1
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: contentbot
+      app.kubernetes.io/component: ${COMPONENT}
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: contentbot
+        app.kubernetes.io/component: ${COMPONENT}
+      annotations:
+        checksum/config: "${CONTENTBOT_CONFIG_CHECKSUM}"
+    spec:
+      nodeSelector:
+        ${STACK}_${COMPONENT}: ""
+      affinity:
+        podAntiAffinity:
+          requiredDuringSchedulingIgnoredDuringExecution:
+            - labelSelector:
+                matchLabels:
+                  app.kubernetes.io/name: contentbot
+                  app.kubernetes.io/component: ${COMPONENT}
+              topologyKey: kubernetes.io/hostname
+      containers:
+        - name: ${COMPONENT}
+          image: ${CONTENTBOT_IMAGE}
+          args: ["${COMPONENT}"]
+          env:
+            - name: PYTHONUNBUFFERED
+              value: "1"
+            # Logs to the container's stdout (kubectl logs).
+            - name: RUNNING_ENVIRONMENT
+              value: DOCKER
+            - name: LOG_LEVEL
+              value: "${CONTENTBOT_LOG_LEVEL}"
+            - name: DOMAIN
+              value: "${DOMAIN}"
+            - name: CONFIG_PATH
+              value: /etc/contentbot/contentbot.conf
+            - name: SECRETS_PATH
+              value: /etc/contentbot/contentbot_secrets.conf
+          resources:
+            requests:
+              cpu: 50m
+              memory: 128Mi
+            limits:
+              memory: 512Mi
+          volumeMounts:
+            - name: config
+              mountPath: /etc/contentbot/contentbot.conf
+              subPath: contentbot.conf
+              readOnly: true
+            - name: secrets
+              mountPath: /etc/contentbot/contentbot_secrets.conf
+              subPath: contentbot_secrets.conf
+              readOnly: true
+            - name: tls
+              mountPath: /etc/contentbot/tls
+              readOnly: true
+      volumes:
+        - name: config
+          configMap:
+            name: contentbot-config
+        - name: secrets
+          secret:
+            secretName: contentbot-secrets
+        # Same file names as on swarm, from the external secrets (secrets/external.yml).
+        - name: tls
+          projected:
+            sources:
+              - secret:
+                  name: external-redis-core
+                  items:
+                    - { key: ca.crt, path: redis_ca.crt }
+                    - { key: contentbot.crt, path: redis.crt }
+                    - { key: contentbot.key, path: redis.key }
+              - secret:
+                  name: external-rabbitmq-core
+                  items:
+                    - { key: ca.crt, path: rabbitmq_ca.crt }
+                    - { key: contentbot.crt, path: rabbitmq.crt }
+                    - { key: contentbot.key, path: rabbitmq.key }

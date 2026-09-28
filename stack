@@ -1,4 +1,78 @@
 #!/usr/bin/env bash
+#
+# Contentbot. The chatbot and worker are Deployments with one replica per node labelled
+# ${STACK}_chatbot / ${STACK}_worker. They connect to Redis (stack-redis) and RabbitMQ
+# (stack-rabbitmq) with the contentbot user's certs, from the external secrets.
+
+# Variables substituted in k8s/*.yaml, anything else is left alone.
+K8S_TEMPLATE_VARS='$STACK $DOMAIN $CONTENTBOT_IMAGE $CONTENTBOT_LOG_LEVEL $CONTENTBOT_CONFIG_CHECKSUM $COMPONENT $COMPONENT_REPLICAS'
+
+# The contentbot user's certs, see make-user in stack-redis and stack-rabbitmq.
+EXTERNAL_SECRETS="redis_core rabbitmq_core"
+EXTERNAL_KEYS="ca.crt contentbot.crt contentbot.key"
+
+# -----------------------------------------------------
+# Helper functions
+# -----------------------------------------------------
+
+function check_stack_context {
+  if [[ ! -f "$SECRETS/contentbot_secrets.conf" ]]; then
+    log_error "'$SECRETS/contentbot_secrets.conf' is missing (try 'deployment secret pull')."
+    exit 1
+  fi
+
+  if (( CHATBOT_REPLICAS == 0 && WORKER_REPLICAS == 0 )); then
+    log_error "No nodes are labelled ${STACK}_chatbot or ${STACK}_worker."
+    exit 1
+  fi
+}
+
+# 'deploy' creates them from secrets/external.yml before stack_deploy runs. Without them the
+# pods never start, so stop here with what's missing.
+function check_external_secrets {
+  local secret name keys key missing=()
+
+  for secret in $EXTERNAL_SECRETS; do
+    name="external-${secret//_/-}"
+    keys=$(kubectl get secret "$name" --namespace "$K8S_NAMESPACE" -o json 2> /dev/null | jq -r '.data // {} | keys[]')
+
+    for key in $EXTERNAL_KEYS; do
+      grep -qx "$key" <<< "$keys" || missing+=("$name: $key")
+    done
+  done
+
+  if (( ${#missing[@]} > 0 )); then
+    log_error "External secrets are missing:"
+    list "${missing[@]}"
+    log_error "'$SECRETS/external.yml' needs (with the keys pushed to Vault by those stacks):"
+    echo "external:"
+    echo "  $ENVIRONMENT:"
+    for secret in $EXTERNAL_SECRETS; do
+      echo "    $secret: [${EXTERNAL_KEYS// /, }]"
+    done
+    exit 1
+  fi
+}
+
+function render {
+  envsubst "$K8S_TEMPLATE_VARS" < "$STACK_PATH/k8s/$1"
+}
+
+# Usage: render_component <component> <replicas>
+function render_component {
+  COMPONENT="$1" COMPONENT_REPLICAS="$2" render deployment.yaml
+}
+
+# Everything that needs a restart when it changes.
+function config {
+  kubectl create configmap contentbot-config \
+    --from-file=contentbot.conf="$CONFIGS/contentbot.conf" \
+    --dry-run=client -o yaml
+  echo "---"
+  kubectl create secret generic contentbot-secrets \
+    --from-file=contentbot_secrets.conf="$SECRETS/contentbot_secrets.conf" \
+    --dry-run=client -o yaml
+}
 
 # -----------------------------------------------------
 # Stack functions
@@ -31,15 +105,33 @@ function stack_tools {
 
 function stack_env {
   echo
-  echo "DOCKER IMAGE    = $CONTENTBOT_IMAGE"
-  echo "CHATBOT NODES   = ($CHATBOT_REPLICAS)"
+  echo "CONTENTBOT IMAGE = $CONTENTBOT_IMAGE"
+  echo "CHATBOT NODES    = ($CHATBOT_REPLICAS)"
   list "$CHATBOT_NODES"
   echo
-  echo "WORKER NODES    = ($WORKER_REPLICAS)"
+  echo "WORKER NODES     = ($WORKER_REPLICAS)"
   list "$WORKER_NODES"
   echo
 }
 
 function stack_deploy {
-  docker stack deploy --detach=true -c contentbot.yml "$STACK"
+  local manifests_config
+
+  check_stack_context
+  check_external_secrets
+
+  manifests_config=$(config)
+  export CONTENTBOT_CONFIG_CHECKSUM=$(sha256sum <<< "$manifests_config" | cut -d' ' -f1)
+
+  log_info "Deploying $CHATBOT_REPLICAS chatbot and $WORKER_REPLICAS worker replica(s) to $K8S_NAMESPACE."
+  {
+    echo "$manifests_config"
+    echo "---"
+    render_component chatbot "$CHATBOT_REPLICAS"
+    echo "---"
+    render_component worker "$WORKER_REPLICAS"
+  } | kubectl apply --namespace "$K8S_NAMESPACE" -f -
+
+  kubectl rollout status deployment/chatbot --namespace "$K8S_NAMESPACE" --timeout=5m
+  kubectl rollout status deployment/worker --namespace "$K8S_NAMESPACE" --timeout=5m
 }
