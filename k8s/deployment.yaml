@@ -52,8 +52,6 @@ spec:
               value: DOCKER
             - name: LOG_LEVEL
               value: "${CONTENTBOT_LOG_LEVEL}"
-            - name: DOMAIN
-              value: "${DOMAIN}"
             - name: CONFIG_PATH
               value: /etc/contentbot/contentbot.conf
             - name: SECRETS_PATH

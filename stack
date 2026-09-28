@@ -5,7 +5,7 @@
 # (stack-rabbitmq) with the contentbot user's certs, from the external secrets.
 
 # Variables substituted in k8s/*.yaml, anything else is left alone.
-K8S_TEMPLATE_VARS='$STACK $DOMAIN $CONTENTBOT_IMAGE $CONTENTBOT_LOG_LEVEL $CONTENTBOT_CONFIG_CHECKSUM $COMPONENT $COMPONENT_REPLICAS'
+K8S_TEMPLATE_VARS='$STACK $CONTENTBOT_IMAGE $CONTENTBOT_LOG_LEVEL $CONTENTBOT_CONFIG_CHECKSUM $COMPONENT $COMPONENT_REPLICAS'
 
 # The contentbot user's certs, see make-user in stack-redis and stack-rabbitmq.
 EXTERNAL_SECRETS="redis_core rabbitmq_core"
